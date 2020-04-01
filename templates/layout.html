@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- add bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <!-- add style -->
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/fonts.css">
+
+
+    <title>BR: {% block title %}{% endblock %}</title>
+</head>
+
+<nav class="navbar navbar-expand-sm bg-warning">
+    <a class="navbar-brand" href="/">
+        <img class="nav_icon" src="/static/pictures/icons/home.png" alt="Logo">
+    </a>
+    <form class="form-inline" action="/search" method="POST">
+        <div class="input-group">
+            <input id="search" type="text" class="form-control" placeholder="Search">
+        </div>
+    </form>
+    <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+            <a class="nav-link" id="userpagelink" href="/users">{{ username }}</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/logout">
+                <img style="width: 40px;" class="nav_icon" src="/static/pictures/icons/exit.png">
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<body>
+    <div class="contenier">
+        {% block body %}{% endblock%}
+    </div>
+
+</body>
+
+</html>

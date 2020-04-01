@@ -1,0 +1,48 @@
+.form-control:focus {
+    border-color: #e99415;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+  }
+
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center, dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend, table,
+caption, tbody, tfoot, thead, tr, th, td {
+  font-family: 'NatoSerif';
+}
+
+#label_img {
+  text-align: center;
+  height: 100px;
+  vertical-align: middle;
+}
+
+/* Иконки в навбаре граница была как у строки поиска из бутстрапа */
+.nav_icon {
+  height: 36px;
+  padding: 0.1rem 0.1rem;
+  background-clip: padding-box;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* Лупа в строке поиска как фон и текст смещен от нее */
+#search {
+  background-size: 30px;
+  background-image: url(/static/pictures/icons/loop.png);
+  background-repeat: no-repeat;
+  text-indent: 20px;
+}
+
+/* Ссылка на личную страницу в navbar */
+#userpagelink {
+  color: #495057;
+  font-size: 18pt;
+}

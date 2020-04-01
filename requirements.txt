@@ -3,3 +3,7 @@ Flask-Session
 psycopg2-binary
 SQLAlchemy
 requests
+
+$env:FLASK_APP="application.py"
+$env:FLASK_DEBUG="1"
+$env:DATABASE_URL="postgres://lgtbidclllahlm:d856bfce86e0fcad9056df9b4137da28ef997dbf7b59c41dce95d1207657408d@ec2-54-195-247-108.eu-west-1.compute.amazonaws.com:5432/df7o9s5sbnevrv"

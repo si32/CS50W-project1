@@ -1,0 +1,32 @@
+/* font-family: NotoSerif; */
+@font-face {
+    font-family: "NotoSerif";
+    src: url("../static/fonts/Noto_Serif/NotoSerif-Regular.ttf") format("truetype"),
+    url("../fonts/Noto_Serif/notoserif-regular-webfont.woff") format("woff");
+    font-style: normal;
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: "NotoSerifBold";
+    src: url("../static/fonts/Noto_Serif/NotoSerif-Bold.ttf") format("truetype"),
+    url("../fonts/Noto_Serif/notoserif-bold-webfont.woff") format("woff");
+    font-style: normal;
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: "NotoSerifItalic";
+    src: url("../static/fonts/Noto_Serif/NotoSerif-Italic.ttf") format("truetype"),
+    url("../fonts/Noto_Serif/notoserif-italic-webfont.woff") format("woff");
+    font-style: normal;
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: "NotoSerifBoldItalic";
+    src: url("../static/fonts/Noto_Serif/NotoSerif-BoldItalic.ttf") format("truetype"),
+    url("../fonts/Noto_Serif/notoserif-bolditalic-webfont.woff") format("woff");
+    font-style: normal;
+    font-weight: normal;
+}

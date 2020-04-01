@@ -2,3 +2,5 @@
 design
 venv
 flask_session
+_pycache_
+*.pyc

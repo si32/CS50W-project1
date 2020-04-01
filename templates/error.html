@@ -1,0 +1,13 @@
+{% extends "log_layout.html" %}
+
+{% block title %}
+Error
+{% endblock %}
+
+{% block body %}
+<div style="text-align: center; margin-top: 3em;">
+    <img height="100" src="/static/pictures/error.png">
+</div>
+<h1 style="text-align: center;">{{ code }}</h1>
+<p style="text-align: center; font-size: 25pt;">{{ text_error }}</p>
+{% endblock %}
