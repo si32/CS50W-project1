@@ -14,7 +14,7 @@
     <title>BR: {% block title %}{% endblock %}</title>
 </head>
 
-<nav class="navbar navbar-expand-sm bg-warning">
+<nav class="navbar navbar-expand-sm bg-warning py-0">
     <a class="navbar-brand" href="/">
         <img class="nav_icon" src="/static/pictures/icons/home.png" alt="Logo">
     </a>
@@ -36,10 +36,12 @@
 </nav>
 
 <body>
-    <div class="contenier">
-        {% block body %}{% endblock%}
-    </div>
-
+    {% block body %}{% endblock%}
 </body>
+
+<footer class="footer text-center py-1 bg-warning">
+    <img class="nav_icon" src="/static/pictures/icons/copyright.png">
+    <a style="color: #495057;" href="mailto:si32cs50@gmail.ru?subject=bookreviewer copyright">si32cs50@gmail.com</a>
+</footer>
 
 </html>

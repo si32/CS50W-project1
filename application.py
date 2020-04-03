@@ -1,4 +1,5 @@
 import os
+import requests
 
 from flask import Flask, session, render_template, request, redirect
 from flask_session import Session
@@ -21,6 +22,9 @@ Session(app)
 # Set up database
 engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
+
+# Path to directory to save covers of books
+app.config["IMAGE_UPLOADS"] = "C:\CS50W\project1\static\pictures\covers"
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -133,6 +137,46 @@ def register():
         return render_template("register.html")
 
 
+"""
+    Класс Book, как объект со всеми необходимыми свойствами, чтобы запросить один раз из базы и пользоваться
+    """
+
+
+class Book:
+    def __init__(self, book_id):
+        self.book_id = book_id
+        book = db.execute(
+            "SELECT * FROM books WHERE book_id=:book_id", {"book_id": self.book_id}
+        ).fetchone()
+        self.isbn = book["isbn"]
+        self.title = book["title"]
+        self.author = book["author"]
+        self.year = book["year"]
+
+        # Check if we have the cover
+        filename = str(self.book_id) + ".png"
+        for file in os.scandir(app.config["IMAGE_UPLOADS"]):
+            if file.is_file():
+                if file.name == filename:
+                    self.cover = "/static/pictures/covers/" + filename
+                    # Check all files in the directory and then upload it from google if it need
+                    break
+        else:
+            url = "https://www.googleapis.com/books/v1/volumes?q=isbn:" + str(self.isbn)
+            res = requests.get(url)
+            if res.status_code != 200:
+                raise Exception("ERROR: API request unsuccessful.")
+            data = res.json()
+            cover_link = data["items"][0]["volumeInfo"]["imageLinks"]["thumbnail"]
+            pic = requests.get(cover_link)
+            # save the image
+            path = os.path.join(app.config["IMAGE_UPLOADS"], filename)
+            out = open(path, "wb")
+            out.write(pic.content)
+            out.close()
+            self.cover = "/static/pictures/covers/" + filename
+
+
 @app.route("/")
 @login_required
 def index():
@@ -140,7 +184,16 @@ def index():
     username = db.execute(
         "SELECT username FROM users WHERE user_id = :user_id", {"user_id": user_id}
     ).fetchone()
-    return render_template("index.html", text=user_id, username=username[0])
+
+    # choose the 5 top rated books
+
+    book_ids = [3, 4, 5, 6, 7]
+
+    # create 5 top rated books objects
+    books = []
+    for book_id in book_ids:
+        books.append(Book(book_id))
+    return render_template("index.html", books=books, username=username[0])
 
 
 # Go to individual book page
@@ -155,11 +208,14 @@ def books():
 @login_required
 def book(book_id):
     # Make sure book exist
-    book = db.execute(
+    valid = db.execute(
         "SELECT * FROM books WHERE book_id=:book_id", {"book_id": book_id}
     ).fetchone()
-    if book is None:
+    if valid is None:
         return errors("No such book")
+    book = Book(book_id, db)
+
+    return render_template("book.html", book=book)
 
 
 # Go to personal user page
@@ -186,5 +242,13 @@ def user(user_id):
 @app.route("/search")
 @login_required
 def search():
-
+    # Если результат поиска один, то сразу на сраницу книги, в противном случае на страницу с результатами поиска
     return render_template("search.html")
+
+
+# for testing fiatures
+@app.route("/test")
+@login_required
+def test():
+
+    return errors("test")

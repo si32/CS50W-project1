@@ -1,5 +1,6 @@
-# import os
-# import requests
+import os
+import requests
+
 # import urllib.parse
 
 from flask import redirect, render_template, request, session
@@ -7,8 +8,8 @@ from functools import wraps
 
 
 def errors(message, code=400):
-    """Render message as an apology to user."""
-    # ,code передает код ошибки в терминал
+    """Render message as an error to user."""
+    # ,code - передает код ошибки в терминал
     return render_template("error.html", code=code, text_error=message), code
 
 

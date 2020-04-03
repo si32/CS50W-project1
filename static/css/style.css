@@ -1,3 +1,9 @@
+/* Пытаюсб, чтобы футер всегда был внизу экрана */
+html,
+body {
+  height: 100%;
+}
+
 .form-control:focus {
     border-color: #e99415;
     box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
@@ -33,6 +39,14 @@ caption, tbody, tfoot, thead, tr, th, td {
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
+.cover-icon {
+  height: 36px;
+  padding: 0.1rem 0.1rem;
+
+  /* border: 1px solid #ced4da;
+  border-radius: 0.25rem; */
+}
+
 /* Лупа в строке поиска как фон и текст смещен от нее */
 #search {
   background-size: 30px;
@@ -45,4 +59,30 @@ caption, tbody, tfoot, thead, tr, th, td {
 #userpagelink {
   color: #495057;
   font-size: 18pt;
+}
+
+/* Форматирование обложки книги (width = height *0.667)*/
+.cover {
+  width: 187px;
+  height: 250px;
+}
+
+.rating {
+  height: 250px;
+  font-size: 40pt;
+  font-weight: bold;
+  color: red;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* .rating::before {
+  content: "";
+} */
+
+.review-amount {
+  font-size: 10pt;
+  font-style: italic;
+  color: #495057;
+  vertical-align: bottom;
 }

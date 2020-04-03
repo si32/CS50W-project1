@@ -7,4 +7,7 @@ Web Programming with Python and JavaScript
 3) Wrote temlates (scatch) of pages in notebook
 4) invented tables and created them with sql request in adminer
 5) worked on login, logout, register and error pages. Made log_layout.html for them.
-6) worked on layout for whole site.
+6) worked on layout for whole site. navbar, footer
+7) Index.html. Make civers image one size by css.
+8) If I don't book cover on my server, I take cover of the book from google books api and download to my server.
+ And then use them to not ask google api to much times.
