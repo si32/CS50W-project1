@@ -19,7 +19,7 @@ Home
             <div class="card bg-warning mx-auto" style="width: fit-content; margin-bottom: 5px;">
                 <div class="card-header py-1">
                     {{ book.title }}
-                    <div class="review-amount"> review: 455</div>
+                    <div class="review-amount"> review: {{ book.review_count }}</div>
                     <a href="/books/{{ book.book_id }}">
                 </div>
                 <div class="card-img">
@@ -29,7 +29,7 @@ Home
                 <div class="card-img-overlay">
                     <div style="vertical-align: middle; line-height: 260px;">
                         <img class="cover-icon" src="/static/pictures/icons/star.png">
-                        <span class="rating">4,6</span>
+                        <span class="rating">{{ book.average_rating }}</span>
                     </div>
                 </div>
                 </a>

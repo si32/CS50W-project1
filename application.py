@@ -163,6 +163,18 @@ class Book:
         self.author = book["author"]
         self.year = book["year"]
 
+        # avg rating and count reviews
+        review_count = db.execute(
+            "SELECT COUNT(review) FROM reviews WHERE book_id=:book_id",
+            {"book_id": book_id},
+        ).fetchone()
+        average_rating = db.execute(
+            "SELECT ROUND(AVG(rating), 2) FROM reviews WHERE book_id=:book_id",
+            {"book_id": book_id},
+        ).fetchone()
+        self.review_count = review_count[0]
+        self.average_rating = str(average_rating[0])
+
         # Check if we have the cover
         filename = str(self.book_id) + ".png"
         for file in os.scandir(app.config["IMAGE_UPLOADS"]):
@@ -242,10 +254,12 @@ def index():
     # надо сделать супер скл запрос
     # book_ids_sql = db.execute("SELECT book_id FROM reviews WHERE GROUP BY (rating AND COUNT(reviews)) LIMIT 5")
     # book_ids = может надо будет составить списо ид, надо смотреть что вернет запрос
-
-    book_ids = [3, 4, 5, 6, 13]
-
-    # create 5 top rated books objects
+    book_ids_res = db.execute(
+        "SELECT book_id FROM reviews GROUP BY book_id HAVING COUNT(*) > 0 ORDER BY AVG(rating) DESC LIMIT 5"
+    ).fetchall()
+    book_ids = []
+    for i in range(5):
+        book_ids.append(book_ids_res[i][0])
     books = []
     for book_id in book_ids:
         books.append(Book(book_id))
@@ -281,7 +295,8 @@ def book(book_id):
 
     # choose all reviews from db
     rev_ids = db.execute(
-        "SELECT rev_id FROM reviews WHERE book_id=:book_id", {"book_id": book.book_id}
+        "SELECT rev_id FROM reviews WHERE book_id=:book_id ORDER BY rev_data DESC",
+        {"book_id": book.book_id},
     ).fetchall()
     # check if user had already left review
     user_id = session.get("user_id")
@@ -337,10 +352,24 @@ def submit_review():
         review = request.form.get("message")
         rating = request.form.get("rating")
 
-        # rows = db.execute(
-        #     "SELECT * FROM users WHERE username = :username", {"username": username}
-        # ).fetchall()
-    return errors("sucks")
+        # # Chech if user has already left comment
+        user_rev_id = db.execute(
+            "SELECT user_id FROM reviews WHERE user_id=:user_id AND book_id=:book_id",
+            {"user_id": user_id, "book_id": book_id},
+        ).fetchone()
+        if user_rev_id == None:
+            db.execute(
+                "INSERT INTO reviews (user_id, book_id, rev_data, review, rating) VALUES (:user_id, :book_id, :rev_data, :review, :rating)",
+                {
+                    "user_id": user_id,
+                    "book_id": book_id,
+                    "rev_data": rev_data,
+                    "review": review,
+                    "rating": rating,
+                },
+            )
+            db.commit()
+    return redirect(f"/books/{book_id}")
 
 
 # Go to personal user page
@@ -366,21 +395,13 @@ def user(user_id):
         return render_template("user.html", user_id=user_id, username=username)
 
 
-# Search results
-@app.route("/search")
-@login_required
-def search():
-    # Если результат поиска один, то сразу на сраницу книги, в противном случае на страницу с результатами поиска
-    return render_template("search.html")
-
-
 # for testing fiatures
 @app.route("/test")
 @login_required
 def test():
     isbn = "9781632168146"
     gr_info = GRinfo(isbn)
-    return errors("gr_info")
+    return errors(gr_info)
 
 
 # make my own API
@@ -411,3 +432,28 @@ def api(isbn):
                 "average_score": str(average_score[0]),
             }
         )
+
+
+# Search results
+@app.route("/search", methods=["GET", "POST"])
+@login_required
+def search():
+    # Если результат поиска один, то сразу на сраницу книги,
+    # в противном случае на страницу с результатами поиска
+    if request.method == "GET":
+        return errors("Not alloyed method", 405)
+    # получить всю необходимую инфо и загрузить в базу данных
+    if request.method == "POST":
+        # Do something if query is exist
+        if request.form.get("query"):
+            query = request.form.get("query")
+            # ask the database
+            squery = "%" + str(query) + "%"
+            results = db.execute(
+                "SELECT * FROM books WHERE isbn LIKE :squery OR title LIKE :squery OR author LIKE :squery",
+                {"squery": squery},
+            ).fetchall()
+    if not results:
+        return errors("Sorry, we didn't find anything!")
+    else:
+        return render_template("search.html", results=results)

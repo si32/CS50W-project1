@@ -13,6 +13,8 @@ Web Programming with Python and JavaScript
  And then use them to not ask google api to much times. If not cover in google api then my pictures.
 9) create class Book, to have all propeerties in one object and use db one time.
 10) use sql-request UPDATE to update isbn in books table.
+11) Add class GEinfo to use Goodreads api
+12) Add my own api
 
 
 
