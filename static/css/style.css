@@ -86,3 +86,9 @@ caption, tbody, tfoot, thead, tr, th, td {
   color: #495057;
   vertical-align: bottom;
 }
+
+textarea[name=message] {
+  height: 120px;
+  width: 100%;
+  margin: 5px;
+}

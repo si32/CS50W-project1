@@ -1,11 +1,12 @@
 import os
 import requests
 
-from flask import Flask, session, render_template, request, redirect
+from flask import Flask, session, render_template, request, redirect, jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import datetime
 
 from helpers import errors, login_required
 
@@ -25,6 +26,15 @@ db = scoped_session(sessionmaker(bind=engine))
 
 # Path to directory to save covers of books
 app.config["IMAGE_UPLOADS"] = "C:\CS50W\project1\static\pictures\covers"
+
+""" different help functions"""
+# return username
+def get_username():
+    user_id = session.get("user_id")
+    username = db.execute(
+        "SELECT username FROM users WHERE user_id = :user_id", {"user_id": user_id}
+    ).fetchone()
+    return username.username
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -167,33 +177,85 @@ class Book:
             if res.status_code != 200:
                 raise Exception("ERROR: API request unsuccessful.")
             data = res.json()
-            cover_link = data["items"][0]["volumeInfo"]["imageLinks"]["thumbnail"]
-            pic = requests.get(cover_link)
-            # save the image
-            path = os.path.join(app.config["IMAGE_UPLOADS"], filename)
-            out = open(path, "wb")
-            out.write(pic.content)
-            out.close()
-            self.cover = "/static/pictures/covers/" + filename
+            # Check if cover_link exist
+            if len(data) < 3:
+                self.cover = "/static/pictures/bookreviewer.png"
+            else:
+                cover_link = data["items"][0]["volumeInfo"]["imageLinks"]["thumbnail"]
+
+                pic = requests.get(cover_link)
+                # save the image
+                path = os.path.join(app.config["IMAGE_UPLOADS"], filename)
+                out = open(path, "wb")
+                out.write(pic.content)
+                out.close()
+                self.cover = "/static/pictures/covers/" + filename
+
+
+"""
+    Класс Review, как объект со всеми необходимыми свойствами, чтобы запросить один раз из базы и пользоваться
+    """
+
+
+class Review:
+    def __init__(self, rev_id):
+        self.rev_id = rev_id
+        review = db.execute(
+            "SELECT * FROM reviews WHERE rev_id=:rev_id", {"rev_id": self.rev_id}
+        ).fetchone()
+        self.user_id = review["user_id"]
+        self.book_id = review["book_id"]
+        self.rev_data = review["rev_data"]
+        self.review = review["review"]
+        self.rating = review["rating"]
+        user = db.execute(
+            "SELECT username FROM users WHERE user_id=:user_id",
+            {"user_id": self.user_id},
+        ).fetchone()
+        self.username = user.username
+
+
+"""
+Class for Goodreads reviews
+"""
+
+
+class GRinfo:
+    def __init__(self, isbns):
+        res = requests.get(
+            "https://www.goodreads.com/book/review_counts.json",
+            params={"key": "45htbBdXBx9GPVgNEW9fQ", "isbns": isbns},
+        )
+        if res.status_code != 200:
+            raise Exception("ERROR: API request unsuccessful.")
+        data = res.json()
+        self.work_ratings_count = data["books"][0]["work_ratings_count"]
+        self.average_rating = data["books"][0]["average_rating"]
 
 
 @app.route("/")
 @login_required
 def index():
-    user_id = session.get("user_id")
-    username = db.execute(
-        "SELECT username FROM users WHERE user_id = :user_id", {"user_id": user_id}
-    ).fetchone()
+    username = get_username()
 
     # choose the 5 top rated books
+    # надо сделать супер скл запрос
+    # book_ids_sql = db.execute("SELECT book_id FROM reviews WHERE GROUP BY (rating AND COUNT(reviews)) LIMIT 5")
+    # book_ids = может надо будет составить списо ид, надо смотреть что вернет запрос
 
-    book_ids = [3, 4, 5, 6, 7]
+    book_ids = [3, 4, 5, 6, 13]
 
     # create 5 top rated books objects
     books = []
     for book_id in book_ids:
         books.append(Book(book_id))
-    return render_template("index.html", books=books, username=username[0])
+
+    # TOP 5 latest reviewed
+    # SELECT rev_id FROM reviews GROUP BU/sort BY rev_data LIMIT 5
+    # или сделат просто и вывести еще и ласт ревьед и все. никаких сортировок
+    # или прочитать в интернете как делать сортировки. Может это через ява скирпт и тогда отложить на потом точно.
+
+    return render_template("index.html", books=books, username=username)
 
 
 # Go to individual book page
@@ -207,15 +269,78 @@ def books():
 @app.route("/books/<int:book_id>")
 @login_required
 def book(book_id):
+    # get username
+    username = get_username()
     # Make sure book exist
     valid = db.execute(
         "SELECT * FROM books WHERE book_id=:book_id", {"book_id": book_id}
     ).fetchone()
     if valid is None:
         return errors("No such book")
-    book = Book(book_id, db)
+    book = Book(book_id)
 
-    return render_template("book.html", book=book)
+    # choose all reviews from db
+    rev_ids = db.execute(
+        "SELECT rev_id FROM reviews WHERE book_id=:book_id", {"book_id": book.book_id}
+    ).fetchall()
+    # check if user had already left review
+    user_id = session.get("user_id")
+    # aql order by, чтобы отсортировать список рквью по дате и передать в темплейт
+    user_rev_id = db.execute(
+        "SELECT rev_id FROM reviews WHERE user_id=:user_id AND book_id=:book_id",
+        {"user_id": user_id, "book_id": book_id},
+    ).fetchone()
+    if user_rev_id:
+        # передать в темплейт, что можно отображать поле для ревбю
+        already_left_rev = "True"
+        user_review = Review(user_rev_id.rev_id)
+    else:
+        already_left_rev = "False"
+        user_review = None
+    # create all reviews objects for the book
+    reviews = []
+    for rev_id in rev_ids:
+        reviews.append(Review(rev_id.rev_id))
+
+    # Make GRinfo class object to take iformation from goodreads API
+    gr_info = GRinfo(book.isbn)
+
+    # отсортировать список рквью по дате а потом передавать
+    # или сортировать скл. Или в скл вывести тупл и сортировать тупл методами питона
+
+    return render_template(
+        "book.html",
+        username=username,
+        book=book,
+        already_left_rev=already_left_rev,
+        user_review=user_review,
+        reviews=reviews,
+        gr_info=gr_info,
+    )
+
+
+# if user leaves a reiew
+@app.route("/submit_review", methods=["GET", "POST"])
+@login_required
+def submit_review():
+    if request.method == "GET":
+        return errors("Not alloyed method", 405)
+    # получить всю необходимую инфо и загрузить в базу данных
+    if request.method == "POST":
+        # Ensure rating was submitted, user can to not submit review itself
+        if not request.form.get("rating"):
+            return errors("must provide rating", 403)
+
+        user_id = session.get("user_id")
+        book_id = request.form.get("hidden_book_id")
+        rev_data = datetime.today().strftime("%d.%m.%Y")
+        review = request.form.get("message")
+        rating = request.form.get("rating")
+
+        # rows = db.execute(
+        #     "SELECT * FROM users WHERE username = :username", {"username": username}
+        # ).fetchall()
+    return errors("sucks")
 
 
 # Go to personal user page
@@ -236,6 +361,9 @@ def user(user_id):
     ).fetchone()
     if user is None:
         return errors("No such user")
+    else:
+        username = user["username"]
+        return render_template("user.html", user_id=user_id, username=username)
 
 
 # Search results
@@ -250,5 +378,36 @@ def search():
 @app.route("/test")
 @login_required
 def test():
+    isbn = "9781632168146"
+    gr_info = GRinfo(isbn)
+    return errors("gr_info")
 
-    return errors("test")
+
+# make my own API
+@app.route("/api/<isbn>")
+@login_required
+def api(isbn):
+    # Make sure book exist
+    book = db.execute("SELECT * FROM books WHERE isbn=:isbn", {"isbn": isbn}).fetchone()
+    if book is None:
+        return jsonify({"error": "No such book"}), 404
+    else:
+        review_count = db.execute(
+            "SELECT COUNT(review) FROM reviews WHERE book_id=:book_id",
+            {"book_id": book["book_id"]},
+        ).fetchone()
+        average_score = db.execute(
+            "SELECT ROUND(AVG(rating), 2) FROM reviews WHERE book_id=:book_id",
+            {"book_id": book["book_id"]},
+        ).fetchone()
+
+        return jsonify(
+            {
+                "title": book["title"],
+                "author": book["author"],
+                "year": book["year"],
+                "isbn": book["isbn"],
+                "review_count": review_count[0],
+                "average_score": str(average_score[0]),
+            }
+        )

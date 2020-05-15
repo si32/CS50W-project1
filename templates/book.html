@@ -1,10 +1,84 @@
 {% extends "layout.html" %}
 
 {% block title %}
-{{ book_id }}
+{{ book.book_id }}
 {% endblock %}
 
 {% block body %}
 
-{{ book.title }}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col text-center py-3">
+            <img align="center" class="cover" src="{{ book.cover }}">
+        </div>
+        <div class="col py-3">
+            <h2>{{ book.title }}</h2>
+            <h5>isbn: {{ book.isbn }}</h5>
+            <h5>author: {{ book.author }}</h5>
+            <h5>year: {{ book.year }}</h5>
+            <!-- GR вставляю только сюда, а по сайту использую свои рейтинги -->
+            <h5>Goodreads rating: {{ gr_info.average_rating }}</h5>
+            <h5>Goodreads reviews: {{ gr_info.work_ratings_count }}</h5>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col text-center">
+            {%  if already_left_rev == "True" %}
+            <div class="alert alert-info text-center mx-auto" style="width: 70%;">
+                <p style="font-size: 14pt;"><strong>Info!</strong> You had already left review for this book
+                    {{ user_review.rev_data }}</p>
+            </div>
+            {% else %}
+            <div class="card bg-warning mx-auto" style="width: 70%; margin-bottom: 5px;">
+                <div class="card-header py-1" style="text-align: left;">
+                    <span id="userpagelink">{{ username }}</span>
+                </div>
+                <div class="card-body  py-1">
+                    <form action="/submit_review" method="post" style="text-align:center">
+                        <!-- recive book_id by post method -->
+                        <input type="hidden" name="hidden_book_id" value="{{ book.book_id }}">
+                        <div style="width: inherit; text-align: left;">
+                            <img class="nav_icon" src="/static/pictures/icons/star.png">
+                            <input name="rating" placeholder="Leave your rating (0-5)">
+                        </div>
+                        <div style="width: inherit;">
+                            <textarea name="message" placeholder="Leave your review"></textarea><br>
+                        </div>
+                        <button type="submit">Review</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            {% for review in reviews %}
+            <div class="card bg-warning mx-auto" style="width: 70%; margin-bottom: 5px;">
+                <div class="card-header py-1 text-center">
+                    <table style="width: 100%;  border-spacing: 0;">
+                        <tr>
+                            <td style="text-align: left;">
+                                <span id="userpagelink">{{ review.username }} </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <span>{{ review.rev_data }} </span>
+                                <img style="text-align: right;" class="nav_icon" src="/static/pictures/icons/star.png">
+                                {{ review.rating }}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card-body py-1">
+                    {{ review.review }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
 {% endblock %}

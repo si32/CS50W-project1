@@ -10,4 +10,15 @@ Web Programming with Python and JavaScript
 6) worked on layout for whole site. navbar, footer
 7) Index.html. Make civers image one size by css.
 8) If I don't book cover on my server, I take cover of the book from google books api and download to my server.
- And then use them to not ask google api to much times.
+ And then use them to not ask google api to much times. If not cover in google api then my pictures.
+9) create class Book, to have all propeerties in one object and use db one time.
+10) use sql-request UPDATE to update isbn in books table.
+
+
+
+
+Сделв сабмит рев роут, там обработка и запись в базу данных и редирект на страницу книги. И новый сабмит будет снизу последним сгрупированным по датку.
+<!-- <div class="review-amount"> review: {{ gr-info.revs }}</div>
+                    <div class="review-amount"> GoodReader rating: {{ gr-info.rating }}</div> -->
+
+Надо верстать book.html
