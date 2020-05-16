@@ -251,9 +251,6 @@ def index():
     username = get_username()
 
     # choose the 5 top rated books
-    # надо сделать супер скл запрос
-    # book_ids_sql = db.execute("SELECT book_id FROM reviews WHERE GROUP BY (rating AND COUNT(reviews)) LIMIT 5")
-    # book_ids = может надо будет составить списо ид, надо смотреть что вернет запрос
     book_ids_res = db.execute(
         "SELECT book_id FROM reviews GROUP BY book_id HAVING COUNT(*) > 0 ORDER BY AVG(rating) DESC LIMIT 5"
     ).fetchall()
@@ -406,7 +403,7 @@ def test():
 
 # make my own API
 @app.route("/api/<isbn>")
-@login_required
+# @login_required
 def api(isbn):
     # Make sure book exist
     book = db.execute("SELECT * FROM books WHERE isbn=:isbn", {"isbn": isbn}).fetchone()
